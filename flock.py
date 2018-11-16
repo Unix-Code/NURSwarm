@@ -7,8 +7,9 @@ import separation as sep
 Returns steering vector starting from origin to desired_vectorself.
 
 desired_vector : Vector representing desired Vector to steer to
+own_vector : Current Vector of Bot
 '''
-def steer(desired_vector):
+def steer(desired_vector, own_vector):
     # Aribitrary Force for F = MA, but in this case,
     # A = F as Mass isn't at play. Essentially, the maximum
     # applied acceleration.
@@ -17,7 +18,7 @@ def steer(desired_vector):
     desired = desired.set_mag(desired.MAX_SPEED)
 
     # Reynolds: Steering = Desired - Current
-    steer = desired.sub(velocity)
+    steer = desired.sub(own_vector)
     steer.limit(max_force)
 
 '''
@@ -27,6 +28,9 @@ acceleration : Current Vector of acceleration
 forces : List of Vectors of new accelerative forces to apply
 '''
 def apply_forces(acceleration, forces):
+    # performs A = Fnet / M
+    # where Fnet is the sum of all accelerative forces
+    # and M is 1 (thus not factored) 
     return acceeration.add_many(forces)
 
 '''
@@ -62,8 +66,9 @@ Returns an accelerative steering force (Vector) using the current nearby bot vec
 
 swarm_vectors : List of Vectors of every bot in the swarm
 nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
+own_vector : Current Vector of Bot
 '''
-def flock(swarm_vectors, nearby_vectors):
+def flock(swarm_vectors, nearby_vectors, own_vector):
     sep_v = steer(sep.separation_desired_vector(nearby_vectors))
     coh_v = steer(coh.cohesion_desired_vector(nearby_vectors))
     ali_v = steer(ali.alignment_desired_vector(swarm_vectors))
