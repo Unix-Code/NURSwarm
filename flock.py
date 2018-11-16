@@ -1,15 +1,12 @@
 from utils import Vector, average_from_vectors
-import alignment as ali
-import cohesion as coh
-import separation as sep
 
-'''
-Returns steering vector starting from origin to desired_vectorself.
-
-desired_vector : Vector representing desired Vector to steer to
-own_vector : Current Vector of Bot
-'''
 def steer(desired_vector, own_vector):
+    """
+    Returns steering vector starting from origin to desired_vectorself.
+
+    desired_vector : Vector representing desired Vector to steer to
+    own_vector : Current Vector of Bot
+    """
     # Aribitrary Force for F = MA, but in this case,
     # A = F as Mass isn't at play. Essentially, the maximum
     # applied acceleration.
@@ -21,57 +18,67 @@ def steer(desired_vector, own_vector):
     steer = desired.sub(own_vector)
     steer.limit(max_force)
 
-'''
-Returns acceleration after adding accelerative forces (Vectors) to itself.
-
-acceleration : Current Vector of acceleration
-forces : List of Vectors of new accelerative forces to apply
-'''
 def apply_forces(acceleration, forces):
+    """
+    Returns acceleration after adding accelerative forces (Vectors) to itself.
+
+    acceleration : Current Vector of acceleration
+    forces : List of Vectors of new accelerative forces to apply
+    """
     # performs A = Fnet / M
     # where Fnet is the sum of all accelerative forces
-    # and M is 1 (thus not factored) 
+    # and M is 1 (thus not factored)
     return acceeration.add_many(forces)
 
-'''
-Returns desired vector based off of Alignment.
-
-swarm_vectors : List of Vectors of every bot in the swarm
-'''
 def alignment_desired_vector(swarm_vectors):
+    """
+    Returns desired vector based off of Alignment.
+
+    swarm_vectors : List of Vectors of every bot in the swarm
+    """
     return average_from_vectors(swarm_vectors)
 
-'''
-Returns desired vector based off of Cohesion.
-
-nearby_vectors : List of Vectors of nearby bots reperesenting euclidean distance from origin (bot itself)
-'''
 def cohesion_desired_vector(nearby_vectors):
+    """
+    Returns desired vector based off of Cohesion.
+
+    nearby_vectors : List of Vectors of nearby bots reperesenting euclidean distance from origin (bot itself)
+    """
     return average_from_vectors(nearby_vectors) if len(nearby_vectors) > 0 else Vector(0, 0, 0)
 
-'''
-Returns desired vector based off of Separation
-
-nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
-'''
 def separation_desired_vector(nearby_vectors):
+    """
+    Returns desired vector based off of Separation
+
+    nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
+    """
     # find opposing vectors from nearby robot's vectors and weight by distance
-    diff_vectors = [vector.invert().normalize() / euclid_distance((0, 0), (vector.x, vector.y) for vector in nearby_vectors]
+    diff_vectors = [vector.invert().normalize(
+    ) / euclid_distance((0, 0), (vector.x, vector.y)) for vector in nearby_vectors]
     # find average of opposing vectors to get desired vector
     avg_diff_vector = average_from_vectors(diff_vectors)
     return avg_diff_vector
 
-'''
-Returns an accelerative steering force (Vector) using the current nearby bot vectors and swarm vectors.
+def destination_desired_vector(dest_vector):
+    """
+    Returns desired vector based off of desired destination
 
-swarm_vectors : List of Vectors of every bot in the swarm
-nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
-own_vector : Current Vector of Bot
-'''
+    dest_vector : Vector representing goal
+    """
+    # TODO: Finish
+    return None
+
 def flock(swarm_vectors, nearby_vectors, own_vector):
-    sep_v = steer(sep.separation_desired_vector(nearby_vectors))
-    coh_v = steer(coh.cohesion_desired_vector(nearby_vectors))
-    ali_v = steer(ali.alignment_desired_vector(swarm_vectors))
+    """
+    Returns an accelerative steering force (Vector) using the current nearby bot vectors and swarm vectors.
+
+    swarm_vectors : List of Vectors of every bot in the swarm
+    nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
+    own_vector : Current Vector of Bot
+    """
+    sep_v = steer(separation_desired_vector(nearby_vectors))
+    coh_v = steer(cohesion_desired_vector(nearby_vectors))
+    ali_v = steer(alignment_desired_vector(swarm_vectors))
 
     # Arbitrarily Weight Steering Vectors
     sep_v = sep_v.mult(1.5)
