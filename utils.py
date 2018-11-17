@@ -9,34 +9,37 @@ class Vector:
         self.speed = speed
         self.MAX_SPEED = 5  # Arbitrary max speed for steering
 
-    def normalize():
-        return Vector(self.x / self.speed, self.y / self.speed1, 1)
+    def normalize(self):
+        return Vector(self.x / self.speed, self.y / self.speed, 1)
 
-    def add(other_vector):
+    def add(self, other_vector):
         new_x = self.x + other_vector.x
         new_y = self.y + other_vector.y
         new_speed = sqrt(new_x ** 2 + new_y ** 2)
         return Vector(new_x, new_y, new_speed)
 
-    def add_many(other_vectors):
+    def add_many(self, other_vectors):
         return self.add(reduce(lambda a, b: a.add(b), other_vectors))
 
-    def sub(other_vector):
+    def sub(self, other_vector):
         new_x = self.x - other_vector.x
         new_y = self.y - other_vector.y
         new_speed = euclid_distance((0, 0), (new_x, new_y))
         return Vector(new_x, new_y, new_speed)
 
-    def mult(scalar):
+    def mult(self, scalar):
         return Vector(self.x * scalar, self.y * scalar, self.speed * scalar)
 
-    def invert():
+    def div(self, scalar):
+        return Vector(self.x / scalar, self.y / scalar, self.speed / scalar)
+
+    def invert(self):
         return Vector(self.x * -1, self.y * -1, self.speed)
 
-    def set_mag(new_mag):
+    def set_mag(self, new_mag):
         return self.normalize().mult(new_mag)
 
-    def limit(max):
+    def limit(self, max):
         length_squared = self.x ** 2 + self.y ** 2
         ratio = 1
         if length_squared > max ** 2 and length_squared > 0:
@@ -47,6 +50,8 @@ class Vector:
         new_speed = euclid_distance((0, 0), (new_x, new_y))
         return Vector(new_x, new_y, new_speed)
 
+    def coords(self):
+        return (self.x, self.y)
 
 def average_from_vectors(vectors):
     x_coords = [vector.x for vector in vectors]
@@ -66,10 +71,11 @@ def euclid_distance(p0, p1):
     """
     return sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
-# theta in Radians
-
-
 def convert_polar_to_cartesian(r, theta):
+    """Returns cartesian coordinates from polar coordinates
+    r : magnitude/radius
+    theta : angle (in Radians)
+    """
     return (r * cos(theta)), (r * sin(theta))
 
 
