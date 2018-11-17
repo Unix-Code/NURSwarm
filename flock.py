@@ -37,9 +37,7 @@ def alignment_desired_vector(swarm_vectors):
 
     swarm_vectors : List of Vectors of every bot in the swarm
     """
-    avg_swarm_v = average_from_vectors(swarm_vectors)
-    #print("Average Swarm Velocity: (%f, %f)" % (avg_swarm_v.x, avg_swarm_v.y))
-    return avg_swarm_v
+    return average_from_vectors(swarm_vectors)
 
 def cohesion_desired_vector(nearby_vectors):
     """

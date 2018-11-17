@@ -1,4 +1,4 @@
-import sys, pygame
+import pygame
 from pygame.locals import *
 import pygame.gfxdraw
 from utils import *
@@ -24,20 +24,16 @@ class Bot(pygame.sprite.Sprite):
 
     def calcnewpos(self, rect, swarm_bots, nearby_bots):
         accel = flock(swarm_bots, nearby_bots, self.velocity)
-        #print("ID: %d -- Velocity: (%f, %f)" % (self.id, self.velocity.x, self.velocity.y))
-        #print("ID: %d -- Acceleration: (%f, %f)" % (bot.id, accel.x, accel.y))
         self.velocity = self.velocity.add(accel)
         MAX_SPEED = self.velocity.MAX_SPEED
         self.velocity = self.velocity.limit(MAX_SPEED) if self.velocity.speed > MAX_SPEED else self.velocity
         self.pos = self.pos.add(self.velocity)
         self.pos.speed = 0 # Keep Speed 0 cuz why not
-        #print("ID: %d -- Velocity: (%f, %f)" % (self.id, self.velocity.x, self.velocity.y))
         return rect.move(self.velocity.x, self.velocity.y)
 
     def out_of_bounds(self, max_width, max_height):
         x = self.pos.x
         y = self.pos.y
-        #print("X: " + str(x) + ", Y: " + str(y))
         return (x + self.size / 2 > max_width
             or y + self.size / 2 > max_height
             or x - self.size / 2 < 0
@@ -72,9 +68,6 @@ def get_nearby_bots(bots, bot, tolerance):
         for other_bot in bots
         if euclid_distance(bot.pos.coords(), other_bot.pos.coords()) < tolerance
         and euclid_distance(bot.pos.coords(), other_bot.pos.coords()) != 0]
-    #for other_bot in bots:
-    #    if euclid_distance(bot.pos.coords(), other_bot.pos.coords()) < tolerance:
-    #        nearby_bots.append(other_bot.pos.sub(bot.pos))
     return nearby_bots
 
 for i in range(0, SWARM_SIZE):
@@ -90,7 +83,6 @@ while not game_over:
 
     screen.fill(black)
     for bot in bots:
-        #print("ID: %d -- Position: (%f, %f)" % (bot.id, bot.pos.x, bot.pos.y))
         bot.update([swarm_bot.velocity for swarm_bot in bots], get_nearby_bots(bots, bot, 100))
         #print("ID: %d -- Velocity: (%f, %f)" % (bot.id, bot.velocity.x, bot.velocity.y))
         if (bot.out_of_bounds(width, height)):
