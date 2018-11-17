@@ -54,7 +54,7 @@ def separation_desired_vector(nearby_vectors):
     nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
     """
     # find opposing vectors from nearby robot's vectors and weight by distance
-    diff_vectors = [vector.invert().normalize().div(euclid_distance((0, 0), (vector.x, vector.y))) for vector in nearby_vectors]
+    diff_vectors = [vector.invert().normalize().div(euclid_distance((0, 0), (vector.x, vector.y)) ** 2) for vector in nearby_vectors]
     # find average of opposing vectors to get desired vector
     avg_diff_vector = average_from_vectors(diff_vectors)
     return avg_diff_vector
@@ -65,29 +65,32 @@ def destination_desired_vector(dest_vector):
 
     dest_vector : Vector representing goal
     """
-    # TODO: Finish
-    return None
 
-def flock(swarm_vectors, nearby_vectors, own_vector):
+    return dest_vector
+
+def flock(swarm_vectors, nearby_vectors, destination_vector,own_vector):
     """
-    Returns an accelerative steering force (Vector) using the current nearby bot vectors and swarm vectors.
+    Returns an accelerative steering force (Vector) using the current nearby Bot vectors and Swarm vectors.
 
-    swarm_vectors : List of Vectors of every bot in the swarm
-    nearby_vectors : List of vectors representing euclidean distance from origin (bot itself)
+    swarm_vectors : List of Vectors of every bot in the Swarm
+    nearby_vectors : List of vectors representing euclidean distance from origin (Bot itself)
+    destination_vector : Relative position Vector of End Goal seen by Bot
     own_vector : Current Vector of Bot
     """
     blank_v = Vector(0, 0, 0)
 
+    goal_v = steer(destination_desired_vector(destination_vector), blank_v) if destination_vector is not None else blank_v
     sep_v = steer(separation_desired_vector(nearby_vectors), blank_v) if len(nearby_vectors) > 0 else blank_v
     coh_v = steer(cohesion_desired_vector(nearby_vectors), blank_v) if len(nearby_vectors) > 0 else blank_v
     ali_v = steer(alignment_desired_vector(swarm_vectors), blank_v)
 
     # Arbitrarily Weight Steering Vectors
+    goal_v = goal_v.mult(0)
     sep_v = sep_v.mult(1)
     coh_v = coh_v.mult(1)
-    ali_v = ali_v.mult(0.5)
+    ali_v = ali_v.mult(1)
 
     # Get Net Steering/Acceleration Vector
-    accel_v = apply_forces(blank_v, [sep_v, coh_v, ali_v])
+    accel_v = apply_forces(blank_v, [goal_v, sep_v, coh_v, ali_v])
 
     return accel_v
