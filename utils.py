@@ -7,10 +7,10 @@ class Vector:
         self.x = x
         self.y = y
         self.speed = speed
-        self.MAX_SPEED = 5  # Arbitrary max speed for steering
+        self.MAX_SPEED = 3  # Arbitrary max speed for steering
 
     def normalize(self):
-        return Vector(self.x / self.speed, self.y / self.speed, 1)
+        return Vector(0, 0, 0) if self.speed == 0 else self.div(self.speed);
 
     def add(self, other_vector):
         new_x = self.x + other_vector.x

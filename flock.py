@@ -37,7 +37,7 @@ def alignment_desired_vector(swarm_vectors):
 
     swarm_vectors : List of Vectors of every bot in the swarm
     """
-    return average_from_vectors(swarm_vectors)
+    return average_from_vectors([vector.normalize() for vector in swarm_vectors])
 
 def cohesion_desired_vector(nearby_vectors):
     """
@@ -45,7 +45,8 @@ def cohesion_desired_vector(nearby_vectors):
 
     nearby_vectors : List of Vectors of nearby bots reperesenting euclidean distance from origin (bot itself)
     """
-    return average_from_vectors(nearby_vectors) if len(nearby_vectors) > 0 else Vector(0, 0, 0)
+    return average_from_vectors([vector.normalize().mult(euclid_distance((0, 0), (vector.x, vector.y))) for vector in nearby_vectors]
+                            if len(nearby_vectors) > 0 else Vector(0, 0, 0)).normalize();
 
 def separation_desired_vector(nearby_vectors):
     """
@@ -57,7 +58,7 @@ def separation_desired_vector(nearby_vectors):
     diff_vectors = [vector.invert().normalize().div(euclid_distance((0, 0), (vector.x, vector.y)) ** 2) for vector in nearby_vectors]
     # find average of opposing vectors to get desired vector
     avg_diff_vector = average_from_vectors(diff_vectors)
-    return avg_diff_vector
+    return avg_diff_vector.normalize();
 
 def destination_desired_vector(dest_vector):
     """
@@ -66,7 +67,7 @@ def destination_desired_vector(dest_vector):
     dest_vector : Vector representing goal
     """
 
-    return dest_vector
+    return dest_vector.normalize()
 
 def flock(swarm_vectors, nearby_vectors, destination_vector,own_vector):
     """
