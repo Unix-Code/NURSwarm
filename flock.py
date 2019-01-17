@@ -1,5 +1,8 @@
 from utils import Vector, average_from_vectors, euclid_distance
 
+SEPARATION_RANGE = 25
+COHESION_RANGE = 100
+
 def steer(desired_vector, own_vector):
     """
     Returns steering vector starting from origin to desired_vectorself.
@@ -31,13 +34,13 @@ def apply_forces(acceleration, forces):
     # and M is 1 (thus not factored)
     return acceleration.add_many(forces)
 
-def alignment_desired_vector(swarm_vectors):
+def alignment_desired_vector(nearby_vectors):
     """
     Returns desired vector based off of Alignment.
 
     swarm_vectors : List of Vectors of every bot in the swarm
     """
-    return average_from_vectors([vector.normalize() for vector in swarm_vectors])
+    return average_from_vectors([vector.normalize() for vector in nearby_vectors])
 
 def cohesion_desired_vector(nearby_vectors):
     """
@@ -69,7 +72,7 @@ def destination_desired_vector(dest_vector):
 
     return dest_vector.normalize()
 
-def flock(swarm_vectors, nearby_vectors, destination_vector,own_vector):
+def flock(swarm_vectors, nearby_vectors, destination_vector, own_vector):
     """
     Returns an accelerative steering force (Vector) using the current nearby Bot vectors and Swarm vectors.
 
@@ -78,15 +81,25 @@ def flock(swarm_vectors, nearby_vectors, destination_vector,own_vector):
     destination_vector : Relative position Vector of End Goal seen by Bot
     own_vector : Current Vector of Bot
     """
+
     blank_v = Vector(0, 0, 0)
 
+    def filter_nearby_vectors(range):
+        for bot in nearby_vectors:
+            if euclid_distance(bot.coords(), blank_v.coords()) > range:
+                nearby_vectors.remove(bot)
+
     goal_v = steer(destination_desired_vector(destination_vector), blank_v) if destination_vector is not None else blank_v
-    sep_v = steer(separation_desired_vector(nearby_vectors), blank_v) if len(nearby_vectors) > 0 else blank_v
-    coh_v = steer(cohesion_desired_vector(nearby_vectors), blank_v) if len(nearby_vectors) > 0 else blank_v
+
     ali_v = steer(alignment_desired_vector(swarm_vectors), blank_v)
+    filter_nearby_vectors(COHESION_RANGE)
+    coh_v = steer(cohesion_desired_vector(nearby_vectors), blank_v) if len(nearby_vectors) > 0 else blank_v
+    filter_nearby_vectors(SEPARATION_RANGE)
+    sep_v = steer(separation_desired_vector(nearby_vectors), blank_v) if len(nearby_vectors) > 0 else blank_v
+
 
     # Arbitrarily Weight Steering Vectors
-    goal_v = goal_v.mult(0)
+    goal_v = goal_v.mult(0.5)
     sep_v = sep_v.mult(1)
     coh_v = coh_v.mult(1)
     ali_v = ali_v.mult(1)
@@ -95,3 +108,5 @@ def flock(swarm_vectors, nearby_vectors, destination_vector,own_vector):
     accel_v = apply_forces(blank_v, [goal_v, sep_v, coh_v, ali_v])
 
     return accel_v
+
+

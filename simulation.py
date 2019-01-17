@@ -43,7 +43,7 @@ class Bot(pygame.sprite.Sprite):
 
 pygame.init()
 
-size = width, height = 800, 800
+size = width, height = 1000, 1000
 black = 0, 0, 0
 
 screen = pygame.display.set_mode(size)
