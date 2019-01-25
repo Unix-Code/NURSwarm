@@ -43,7 +43,7 @@ class Bot(pygame.sprite.Sprite):
 
 pygame.init()
 
-size = width, height = 1000, 1000
+size = width, height = 800, 800
 black = 0, 0, 0
 
 screen = pygame.display.set_mode(size)
@@ -91,9 +91,13 @@ while not game_over:
         #print("ID: %d -- Position: (%f, %f)" % (bot.id, bot.pos.x, bot.pos.y))
         bot.update([swarm_bot.velocity for swarm_bot in bots], get_nearby_bots(bots, bot, 100),
          goal.sub(bot.pos) if euclid_distance(goal.coords(), bot.pos.coords()) < 0.5 * width else None)
+
+
         #if (bot.out_of_bounds(width, height)):
         #    bot.velocity = bot.velocity.invert()
-    bots = list(filter(lambda b: not b.out_of_bounds(width, height), bots))
+
+    #bots = list(filter(lambda b: not b.out_of_bounds(width, height), bots))
+
 
     if len(bots) < SWARM_SIZE:
         for i in range(0, SWARM_SIZE - len(bots)):
@@ -103,3 +107,24 @@ while not game_over:
         screen.blit(bot.image, bot.rect)
 
     pygame.display.flip()
+
+
+    # Creates walls at edge of screen
+
+    tolerance = 5
+
+    for bot in bots:
+        x, y = bot.pos.add(bot.velocity).coords()
+        if (x + bot.size > width + tolerance):
+            bot.pos.x = width - tolerance
+
+        elif(x - bot.size < 0 - tolerance):
+            bot.pos.x = tolerance
+
+        elif (y + bot.size > height + tolerance):
+            bot.pos.y = height - tolerance
+
+        elif(y - bot.size < 0 - tolerance):
+            bot.pos.y = tolerance
+
+

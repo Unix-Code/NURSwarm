@@ -34,13 +34,13 @@ def apply_forces(acceleration, forces):
     # and M is 1 (thus not factored)
     return acceleration.add_many(forces)
 
-def alignment_desired_vector(nearby_vectors):
+def alignment_desired_vector(swarm_vectors):
     """
     Returns desired vector based off of Alignment.
 
     swarm_vectors : List of Vectors of every bot in the swarm
     """
-    return average_from_vectors([vector.normalize() for vector in nearby_vectors])
+    return average_from_vectors([vector.normalize() for vector in swarm_vectors])
 
 def cohesion_desired_vector(nearby_vectors):
     """
