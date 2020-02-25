@@ -2,10 +2,9 @@ import pygame
 import pygame.gfxdraw
 from pygame.locals import Rect
 
-# activate the pygame library .
-# initiate pygame and give permission
-# to use pygame's functionality.
-pygame.init()
+# activate/initiate the pygame library
+num_pass, num_failed = pygame.init()
+print(f"{num_pass} pygame modules succesfully initialized and {num_failed} failed.")
 
 # RGB color constants
 WHITE = (255, 255, 255)
@@ -16,7 +15,7 @@ GREY = (200, 200, 200)
 
 # background width and height
 WIDTH = 400
-HEIGHT = 400
+HEIGHT = 800
 
 # create the display surface object of specific dimension. (WIDTH,HEIGHT).
 display_surface: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -49,9 +48,11 @@ pygame.gfxdraw.box(display_surface, Rect(AXLE_X - WHEEL_RADIUS // 2, WHEEL_Y, WH
 # right wheel
 pygame.gfxdraw.box(display_surface, Rect(AXLE_X * 2 + WHEEL_RADIUS // 2, WHEEL_Y, WHEEL_RADIUS, WHEEL_RADIUS), BLACK)
 
+clock = pygame.time.Clock()
+
 # infinite loop
 while True:
-
+    clock.tick(60)
     # iterate over the list of Event objects
     # that was returned by pygame.event.get() method.
     for event in pygame.event.get():
@@ -66,5 +67,7 @@ while True:
             # quit the program.
             quit()
 
-        # Draws the surface object to the screen.
-        pygame.display.update()
+    # Refreshes entire window and surface object.
+    pygame.display.flip()
+    # move forward
+    display_surface.scroll(0, -1)
