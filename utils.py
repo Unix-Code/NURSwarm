@@ -10,6 +10,11 @@ class Vector:
         self.y = y
         self.mag = euclid_distance((0, 0), (x, y))
 
+    def from_polar(self, r, theta):
+        x = r * cos(theta)
+        y = r * sin(theta)
+        return Vector(x, y)
+
     def normalize(self):
         return Vector(0, 0) if self.mag == 0 else self.div(self.mag)
 

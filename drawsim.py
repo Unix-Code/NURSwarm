@@ -1,7 +1,9 @@
 import pygame
 import pygame.gfxdraw
+import math
 from pygame import Rect, Surface
 from typing import Tuple
+from utils import Vector
 
 # activate/initiate the pygame library
 num_pass, num_failed = pygame.init()
@@ -33,11 +35,20 @@ display_surface.fill(WHITE)
 class Bot:
     """A drawing of bot which can be manipulated."""
 
-    def __init__(self):
-        self.draw()
-        self.rect = self.image.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    def __init__(self, pos, vel):
+        # self.draw()
+        # self.rect = self.image.get_rect(center=(x, y))
+        
+        # clockwise rotation (in radians)
+        self.angle = 0
+        self.pos = pos
+        self.vel = vel
 
-    def draw(self, offset: int = 0) -> None:
+    def update(self):
+        self.pos = self.pos.add(self.vel)
+        # self.rect = Rect()
+
+    def draw(self) -> None:
         """Renders the actual bot image.
 
         Consists of two square wheels, a rectangular axle connected the wheels,
@@ -51,18 +62,18 @@ class Bot:
         """
 
         # bot radius
-        BOT_RADIUS = 150
+        BOT_RADIUS = 75
         SURFACE_WIDTH = SURFACE_HEIGHT = 350
 
         bot_surface = Surface((SURFACE_WIDTH, SURFACE_HEIGHT), pygame.SRCALPHA)
         self.image = bot_surface
 
         # body of bot
-        pygame.gfxdraw.aacircle(bot_surface, SURFACE_WIDTH // 2 + offset, SURFACE_HEIGHT // 2, BOT_RADIUS // 2, GREEN)
-        pygame.gfxdraw.filled_circle(bot_surface, SURFACE_WIDTH // 2 + offset, SURFACE_HEIGHT // 2, BOT_RADIUS // 2, GREEN)
+        pygame.gfxdraw.aacircle(bot_surface, SURFACE_WIDTH // 2 + offset, SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
+        pygame.gfxdraw.filled_circle(bot_surface, SURFACE_WIDTH // 2 + offset, SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
 
         # axle
-        AXLE_WIDTH = 150
+        AXLE_WIDTH = BOT_RADIUS * 2
         self.AXLE_WIDTH = AXLE_WIDTH
         AXLE_HEIGHT = 20
         AXLE_X = SURFACE_WIDTH // 2 - AXLE_WIDTH // 2
@@ -70,12 +81,44 @@ class Bot:
         pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + offset, AXLE_Y, AXLE_WIDTH, AXLE_HEIGHT), LIGHT_PURPLE)
 
         # wheels
-        WHEEL_RADIUS = 30
-        WHEEL_Y = AXLE_Y - (WHEEL_RADIUS - AXLE_HEIGHT) // 2
+        WHEEL_WIDTH = 30
+        WHEEL_Y = AXLE_Y - (WHEEL_WIDTH - AXLE_HEIGHT) // 2
         # left wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - WHEEL_RADIUS // 2 + offset, WHEEL_Y, WHEEL_RADIUS, WHEEL_RADIUS), RED)
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - WHEEL_WIDTH + offset, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), RED)
         # right wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH - WHEEL_RADIUS // 2 + offset, WHEEL_Y, WHEEL_RADIUS, WHEEL_RADIUS), BLUE)
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH + offset, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), BLUE)
+
+    def _get_left_wheel_vector(self) -> Vector:
+        """Returns the relative vector from the center to the left wheel
+        """
+        left_wheel_angle = self.angle + math.pi / 2
+        left_wheel_distance = BOT_RADIUS + (WHEEL_WIDTH / 2)
+        return Vector.from_polar(left_wheel_distance, left_wheel_angle)
+    
+    def _get_left_wheel_pos_vector(self) -> Vector:
+        return self.pos.add(self._get_left_wheel_vector())
+
+    def _get_right_wheel_vector(self) -> Vector:
+        """Returns the relative vector from the center to the right wheel
+        """
+        right_wheel_angle = self.angle - math.pi / 2
+        right_wheel_distance = BOT_RADIUS + (WHEEL_WIDTH / 2)
+        return Vector.from_polar(right_wheel_distance, right_wheel_angle)
+    
+    def _get_right_wheel_pos_vector(self) -> Vector:
+        return self.pos.add(self._get_right_wheel_vector())
+
+    def rotate_around_left_wheel(self, angle):
+        left_wheel_pos = self._get_left_wheel_pos_vector()
+        self.angle += angle
+        offset = self._get_left_wheel_vector().invert()
+        self.pos = left_wheel_pos.add(offset)
+
+    def rotate_around_right_wheel(self, angle):
+        right_wheel_pos = self._get_right_wheel_pos_vector()
+        self.angle += angle
+        offset = self._get_right_wheel_vector().invert()
+        self.pos = right_wheel_pos.add(offset)
 
     def rotated_around_center(self, angle: int) -> Tuple[Surface, Rect]:
         """Returns a new instance of the surface and rectangle after rotating
@@ -117,6 +160,7 @@ class Bot:
         center = self.rect.center
         rotated_image = pygame.transform.rotate(self.image, angle)
         new_rect = rotated_image.get_rect(center=center)
+        print(center)
 
         return rotated_image, new_rect
 
@@ -158,6 +202,8 @@ clock = pygame.time.Clock()
 angle = 0
 bot = Bot()
 
+ticks = 0
+
 if __name__ == "__main__":
     # start the program
     while True:
@@ -172,6 +218,7 @@ if __name__ == "__main__":
 
         # fill in the background to hide past drawings
         display_surface.fill(WHITE)
+        image, rect = bot.rotated_around_center(0)        
 
         # move forward
         bot.move_forward(1)
@@ -185,3 +232,5 @@ if __name__ == "__main__":
 
         # refreshes entire window and surface object
         pygame.display.flip()
+
+        ticks += 1
