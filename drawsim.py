@@ -38,11 +38,13 @@ class Bot:
     def __init__(self, pos, vel):
         # self.draw()
         # self.rect = self.image.get_rect(center=(x, y))
-        
+
         # clockwise rotation (in radians)
         self.angle = 0
         self.pos = pos
         self.vel = vel
+        self.BOT_RADIUS = 75
+        self.WHEEL_WIDTH = 30
 
     def update(self):
         self.pos = self.pos.add(self.vel)
@@ -52,9 +54,9 @@ class Bot:
         """Returns the relative vector from the center to the left wheel
         """
         left_wheel_angle = self.angle + math.pi / 2
-        left_wheel_distance = BOT_RADIUS + (WHEEL_WIDTH / 2)
-        return Vector.from_polar(left_wheel_distance, left_wheel_angle)
-    
+        left_wheel_distance = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
+        return self.vel.from_polar(left_wheel_distance, left_wheel_angle)
+
     def _get_left_wheel_pos_vector(self) -> Vector:
         return self.pos.add(self._get_left_wheel_vector())
 
@@ -62,9 +64,9 @@ class Bot:
         """Returns the relative vector from the center to the right wheel
         """
         right_wheel_angle = self.angle - math.pi / 2
-        right_wheel_distance = BOT_RADIUS + (WHEEL_WIDTH / 2)
-        return Vector.from_polar(right_wheel_distance, right_wheel_angle)
-    
+        right_wheel_distance = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
+        return self.vel.from_polar(right_wheel_distance, right_wheel_angle)
+
     def _get_right_wheel_pos_vector(self) -> Vector:
         return self.pos.add(self._get_right_wheel_vector())
 
@@ -179,10 +181,8 @@ class Bot:
         display_surface.blit(bot_surface, (self.pos.x - bot_surface.get_width() // 2, self.pos.y - bot_surface.get_height() // 2))
 
 
-
-
 clock = pygame.time.Clock()
-angle = 0
+angle = 1
 bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, -1))
 
 ticks = 0
@@ -200,10 +200,11 @@ if __name__ == "__main__":
                 quit()
 
         # fill in the background to hide past drawings
-        display_surface.fill(WHITE)      
+        display_surface.fill(WHITE)
 
+        bot.rotate_around_left_wheel(angle)
         bot.update()
         bot.draw(display_surface)
-        
+
         # refreshes entire window and surface object
         pygame.display.flip()
