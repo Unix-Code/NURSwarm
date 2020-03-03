@@ -48,46 +48,6 @@ class Bot:
         self.pos = self.pos.add(self.vel)
         # self.rect = Rect()
 
-    def draw(self) -> None:
-        """Renders the actual bot image.
-
-        Consists of two square wheels, a rectangular axle connected the wheels,
-        and a circular base.
-
-        Parameters
-        ----------
-        offset : int
-            The number of pixels to shift the drawing of the bot
-            relative to the base surface.
-        """
-
-        # bot radius
-        BOT_RADIUS = 75
-        SURFACE_WIDTH = SURFACE_HEIGHT = 350
-
-        bot_surface = Surface((SURFACE_WIDTH, SURFACE_HEIGHT), pygame.SRCALPHA)
-        self.image = bot_surface
-
-        # body of bot
-        pygame.gfxdraw.aacircle(bot_surface, SURFACE_WIDTH // 2 + offset, SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
-        pygame.gfxdraw.filled_circle(bot_surface, SURFACE_WIDTH // 2 + offset, SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
-
-        # axle
-        AXLE_WIDTH = BOT_RADIUS * 2
-        self.AXLE_WIDTH = AXLE_WIDTH
-        AXLE_HEIGHT = 20
-        AXLE_X = SURFACE_WIDTH // 2 - AXLE_WIDTH // 2
-        AXLE_Y = SURFACE_HEIGHT // 2 - AXLE_HEIGHT // 2
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + offset, AXLE_Y, AXLE_WIDTH, AXLE_HEIGHT), LIGHT_PURPLE)
-
-        # wheels
-        WHEEL_WIDTH = 30
-        WHEEL_Y = AXLE_Y - (WHEEL_WIDTH - AXLE_HEIGHT) // 2
-        # left wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - WHEEL_WIDTH + offset, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), RED)
-        # right wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH + offset, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), BLUE)
-
     def _get_left_wheel_vector(self) -> Vector:
         """Returns the relative vector from the center to the left wheel
         """
@@ -186,21 +146,44 @@ class Bot:
 
         return rotated_image, new_rect
 
-    def move_forward(self, pixels: int) -> None:
-        """Moves the bot forward by the given amount of pixels.
+    def draw(self, display_surface) -> None:
 
-        Parameters
-        ----------
-        pixels : int
-            The amount of pixels to move the bot forward by
-        """
+        # bot radius
+        BOT_RADIUS = 75
+        SURFACE_WIDTH = SURFACE_HEIGHT = 350
 
-        self.rect.move_ip(0, -pixels)
+        bot_surface = Surface((SURFACE_WIDTH, SURFACE_HEIGHT), pygame.SRCALPHA)
+
+        # body of bot
+        pygame.gfxdraw.aacircle(bot_surface, SURFACE_WIDTH // 2, SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
+        pygame.gfxdraw.filled_circle(bot_surface, SURFACE_WIDTH // 2 , SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
+
+        # axle
+        AXLE_WIDTH = BOT_RADIUS * 2
+        self.AXLE_WIDTH = AXLE_WIDTH
+        AXLE_HEIGHT = 20
+        AXLE_X = SURFACE_WIDTH // 2 - AXLE_WIDTH // 2
+        AXLE_Y = SURFACE_HEIGHT // 2 - AXLE_HEIGHT // 2
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X , AXLE_Y, AXLE_WIDTH, AXLE_HEIGHT), LIGHT_PURPLE)
+
+        # wheels
+        WHEEL_WIDTH = 30
+        WHEEL_Y = AXLE_Y - (WHEEL_WIDTH - AXLE_HEIGHT) // 2
+        # left wheel
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - WHEEL_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), RED)
+        # right wheel
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), BLUE)
+
+        bot_surface = pygame.transform.rotate(bot_surface, self.angle)
+
+        display_surface.blit(bot_surface, (self.pos.x - bot_surface.get_width() // 2, self.pos.y - bot_surface.get_height() // 2))
+
+
 
 
 clock = pygame.time.Clock()
 angle = 0
-bot = Bot()
+bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, -1))
 
 ticks = 0
 
@@ -217,20 +200,10 @@ if __name__ == "__main__":
                 quit()
 
         # fill in the background to hide past drawings
-        display_surface.fill(WHITE)
-        image, rect = bot.rotated_around_center(0)        
+        display_surface.fill(WHITE)      
 
-        # move forward
-        bot.move_forward(1)
-
-        # rotate image
-        angle += 1
-        image, rect = bot.rotated_around_center(angle)
-
-        # draw the bot onto the backround surface
-        display_surface.blit(image, rect)
-
+        bot.update()
+        bot.draw(display_surface)
+        
         # refreshes entire window and surface object
         pygame.display.flip()
-
-        ticks += 1
