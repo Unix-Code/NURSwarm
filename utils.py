@@ -10,7 +10,11 @@ class Vector:
         self.y = y
         self.mag = euclid_distance((0, 0), (x, y))
 
-    def from_polar(self, r, theta):
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
+
+    @staticmethod
+    def from_polar(r, theta):
         x = r * cos(theta)
         y = r * sin(theta)
         return Vector(x, y)

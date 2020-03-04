@@ -50,25 +50,25 @@ class Bot:
         self.pos = self.pos.add(self.vel)
         # self.rect = Rect()
 
+    def _get_left_wheel_pos_vector(self) -> Vector:
+        return self.pos.add(self._get_left_wheel_vector())
+
     def _get_left_wheel_vector(self) -> Vector:
         """Returns the relative vector from the center to the left wheel
         """
-        left_wheel_angle = self.angle + math.pi / 2
+        left_wheel_angle = -self.angle
         left_wheel_distance = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
-        return self.vel.from_polar(left_wheel_distance, left_wheel_angle)
+        return Vector.from_polar(left_wheel_distance, left_wheel_angle)
 
-    def _get_left_wheel_pos_vector(self) -> Vector:
-        return self.pos.add(self._get_left_wheel_vector())
+    def _get_right_wheel_pos_vector(self) -> Vector:
+        return self.pos.add(self._get_right_wheel_vector())
 
     def _get_right_wheel_vector(self) -> Vector:
         """Returns the relative vector from the center to the right wheel
         """
-        right_wheel_angle = self.angle - math.pi / 2
+        right_wheel_angle = self.angle
         right_wheel_distance = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
-        return self.vel.from_polar(right_wheel_distance, right_wheel_angle)
-
-    def _get_right_wheel_pos_vector(self) -> Vector:
-        return self.pos.add(self._get_right_wheel_vector())
+        return Vector.from_polar(right_wheel_distance, right_wheel_angle)
 
     def rotate_around_left_wheel(self, angle):
         left_wheel_pos = self._get_left_wheel_pos_vector()
@@ -81,72 +81,6 @@ class Bot:
         self.angle += angle
         offset = self._get_right_wheel_vector().invert()
         self.pos = right_wheel_pos.add(offset)
-
-    def rotated_around_center(self, angle: int) -> Tuple[Surface, Rect]:
-        """Returns a new instance of the surface and rectangle after rotating
-        the bot counter-clockwise around its center by the given angle.
-
-        Parameters
-        ----------
-        angle : int
-            The degrees to rotate the bot counter-clockwise by.
-
-        Returns
-        ----------
-        A tuple consisting of the new surface and rectangle after
-        the bot has been rotated.
-        """
-
-        center = self.rect.center
-        rotated_image = pygame.transform.rotate(self.image, angle)
-        new_rect = rotated_image.get_rect(center=center)
-
-        return rotated_image, new_rect
-
-    def rotated_around_left_wheel(self, angle: int) -> Tuple[Surface, Rect]:
-        """Returns a new instance of the surface and rectangle after rotating
-        the bot counter-clockwise around its left wheel by the given angle.
-
-        Parameters
-        ----------
-        angle : int
-            The degrees to rotate the bot counter-clockwise by.
-
-        Returns
-        ----------
-        A tuple consisting of the new surface and rectangle after
-        the bot has been rotated.
-        """
-
-        self.draw(self.AXLE_WIDTH // 2)
-        center = self.rect.center
-        rotated_image = pygame.transform.rotate(self.image, angle)
-        new_rect = rotated_image.get_rect(center=center)
-        print(center)
-
-        return rotated_image, new_rect
-
-    def rotated_around_right_wheel(self, angle: int) -> Tuple[Surface, Rect]:
-        """Returns a new instance of the surface and rectangle after rotating
-        the bot counter-clockwise around its right wheel by the given angle.
-
-        Parameters
-        ----------
-        angle : int
-            The degrees to rotate the bot counter-clockwise by.
-
-        Returns
-        ----------
-        A tuple consisting of the new surface and rectangle after
-        the bot has been rotated.
-        """
-
-        self.draw(-self.AXLE_WIDTH // 2)
-        center = self.rect.center
-        rotated_image = pygame.transform.rotate(self.image, angle)
-        new_rect = rotated_image.get_rect(center=center)
-
-        return rotated_image, new_rect
 
     def draw(self, display_surface) -> None:
 
@@ -176,21 +110,21 @@ class Bot:
         # right wheel
         pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), BLUE)
 
-        bot_surface = pygame.transform.rotate(bot_surface, self.angle)
+        bot_surface = pygame.transform.rotate(bot_surface, -self.angle * 180 / math.pi)
 
         display_surface.blit(bot_surface, (self.pos.x - bot_surface.get_width() // 2, self.pos.y - bot_surface.get_height() // 2))
 
 
 clock = pygame.time.Clock()
-angle = 1
-bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, -1))
+angle = math.pi / 90
+bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, 0))
 
 ticks = 0
 
 if __name__ == "__main__":
     # start the program
     while True:
-        clock.tick(60)
+        clock.tick(20)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # deactivates the pygame library
