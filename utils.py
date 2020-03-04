@@ -13,6 +13,9 @@ class Vector:
     def __repr__(self):
         return f"({self.x}, {self.y})"
 
+    def rotated(self, angle: float):
+        return self.from_polar(self.mag, self.heading() + angle)
+
     @staticmethod
     def from_polar(r, theta):
         x = r * cos(theta)

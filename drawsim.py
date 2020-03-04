@@ -2,7 +2,6 @@ import pygame
 import pygame.gfxdraw
 import math
 from pygame import Rect, Surface
-from typing import Tuple
 from utils import Vector
 
 # activate/initiate the pygame library
@@ -36,57 +35,32 @@ class Bot:
     """A drawing of bot which can be manipulated."""
 
     def __init__(self, pos, vel):
-        # self.draw()
-        # self.rect = self.image.get_rect(center=(x, y))
-
         # clockwise rotation (in radians)
-        self.angle = 0
-        self.pos = pos
+        self.angle = math.pi / 2
+        self.pos: Vector = pos
         self.vel = vel
         self.BOT_RADIUS = 75
         self.WHEEL_WIDTH = 30
+        self.WHEEL_DISTANCE_TO_CENTER = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
 
     def update(self):
         self.pos = self.pos.add(self.vel)
-        # self.rect = Rect()
 
-    def _get_left_wheel_pos_vector(self) -> Vector:
-        return self.pos.add(self._get_left_wheel_vector())
-
-    def _get_left_wheel_vector(self) -> Vector:
-        """Returns the relative vector from the center to the left wheel
-        """
-        left_wheel_angle = -self.angle
-        left_wheel_distance = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
-        return Vector.from_polar(left_wheel_distance, left_wheel_angle)
-
-    def _get_right_wheel_pos_vector(self) -> Vector:
-        return self.pos.add(self._get_right_wheel_vector())
-
-    def _get_right_wheel_vector(self) -> Vector:
-        """Returns the relative vector from the center to the right wheel
-        """
-        right_wheel_angle = self.angle
-        right_wheel_distance = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
-        return Vector.from_polar(right_wheel_distance, right_wheel_angle)
-
-    def rotate_around_left_wheel(self, angle):
-        left_wheel_pos = self._get_left_wheel_pos_vector()
-        self.angle += angle
-        offset = self._get_left_wheel_vector().invert()
-        self.pos = left_wheel_pos.add(offset)
-
-    def rotate_around_right_wheel(self, angle):
-        right_wheel_pos = self._get_right_wheel_pos_vector()
-        self.angle += angle
-        offset = self._get_right_wheel_vector().invert()
-        self.pos = right_wheel_pos.add(offset)
+    def rotate(self, pos: Vector, angle: int, is_clockwise: bool = True) -> None:
+        vec_from_pos_to_center = self.pos.sub(pos)
+        if is_clockwise:
+            rotated_vec = vec_from_pos_to_center.rotated(angle)
+            self.angle -= angle
+        else:
+            rotated_vec = vec_from_pos_to_center.rotated(-angle)
+            self.angle += angle
+        self.pos = pos.add(rotated_vec)
 
     def draw(self, display_surface) -> None:
 
         # bot radius
         BOT_RADIUS = 75
-        SURFACE_WIDTH = SURFACE_HEIGHT = 350
+        SURFACE_WIDTH = SURFACE_HEIGHT = 200
 
         bot_surface = Surface((SURFACE_WIDTH, SURFACE_HEIGHT), pygame.SRCALPHA)
 
@@ -110,13 +84,15 @@ class Bot:
         # right wheel
         pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), BLUE)
 
-        bot_surface = pygame.transform.rotate(bot_surface, -self.angle * 180 / math.pi)
+        bot_surface = pygame.transform.rotate(bot_surface, math.degrees(self.angle))
 
-        display_surface.blit(bot_surface, (self.pos.x - bot_surface.get_width() // 2, self.pos.y - bot_surface.get_height() // 2))
+        draw_pos = self.pos.sub(Vector(bot_surface.get_width() // 2, bot_surface.get_height() // 2))
+
+        display_surface.blit(bot_surface, draw_pos.coords())
 
 
 clock = pygame.time.Clock()
-angle = math.pi / 90
+angle = math.radians(1)
 bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, 0))
 
 ticks = 0
@@ -124,7 +100,7 @@ ticks = 0
 if __name__ == "__main__":
     # start the program
     while True:
-        clock.tick(20)
+        clock.tick(60)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # deactivates the pygame library
@@ -136,7 +112,7 @@ if __name__ == "__main__":
         # fill in the background to hide past drawings
         display_surface.fill(WHITE)
 
-        bot.rotate_around_left_wheel(angle)
+        bot.rotate(Vector(400, 310), angle, False)
         bot.update()
         bot.draw(display_surface)
 
