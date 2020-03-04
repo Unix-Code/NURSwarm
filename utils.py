@@ -11,7 +11,7 @@ class Vector:
         self.mag = euclid_distance((0, 0), (x, y))
 
     def __repr__(self):
-        return f"({self.x}, {self.y})"
+        return f"<Vector {self.coords()}, heading={self.heading(in_degrees=True)}>"
 
     def rotated(self, angle: float):
         return self.from_polar(self.mag, self.heading() + angle)

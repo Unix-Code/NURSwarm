@@ -32,21 +32,46 @@ display_surface.fill(WHITE)
 
 
 class Bot:
-    """A drawing of bot which can be manipulated."""
+    """A drawing of bot which can be manipulated.
 
-    def __init__(self, pos, vel):
-        # clockwise rotation (in radians)
-        self.angle = math.pi / 2
+    Attributes
+    ----------
+    angle : `float`
+        Angle in radians of the bot (using the unit-circle)
+    pos : `Vector`
+        The position of the bot's center as a Vector.
+    vel : `Vector`
+        The bot's current velocity.
+    BOT_RADIUS: `int`
+        The radius of the bot's body (which is a circle)
+    WHEEL_WIDTH: `int`
+        The entire width of the bot's wheel (which is a rectangle)
+    """
+
+    def __init__(self, pos: Vector, vel: Vector):
+        self.angle: float = math.pi / 2
         self.pos: Vector = pos
-        self.vel = vel
-        self.BOT_RADIUS = 75
-        self.WHEEL_WIDTH = 30
-        self.WHEEL_DISTANCE_TO_CENTER = self.BOT_RADIUS + (self.WHEEL_WIDTH / 2)
+        self.vel: Vector = vel
+        self.BOT_RADIUS: int = 75
+        self.WHEEL_WIDTH: int = 30
 
     def update(self):
         self.pos = self.pos.add(self.vel)
 
-    def rotate(self, pos: Vector, angle: int, is_clockwise: bool = True) -> None:
+    def rotate(self, pos: Vector, angle: float, is_clockwise: bool = True) -> None:
+        """Rotates the bot around the given position by the given angle
+        either clockwise or counter-clockwise.
+
+        Parameters
+        ------------
+        pos: `Vector`
+            The position to rotate the bot around.
+        angle: `float`
+            The angle given in radians to rotate the bot by.
+        is_clockwise: `bool`
+            Whether to rotate the bot clockwise or counter-clockwise.
+        """
+
         vec_from_pos_to_center = self.pos.sub(pos)
         if is_clockwise:
             rotated_vec = vec_from_pos_to_center.rotated(angle)
@@ -56,7 +81,30 @@ class Bot:
             self.angle += angle
         self.pos = pos.add(rotated_vec)
 
-    def draw(self, display_surface) -> None:
+    def turn_on_right_wheel(self, angle: float) -> None:
+        """Rotates the bot clockwise around the right wheel by the given angle.
+
+        Parameters
+        ------------
+        angle: `float`
+            The angle given in radians to rotate the bot by.
+        """
+
+        bot.rotate(Vector(400, 310), angle, True)
+
+    def turn_on_left_wheel(self, angle: float) -> None:
+        """Rotates the bot counter-clockwise around the left wheel by the given angle.
+
+        Parameters
+        ------------
+        angle: `float`
+            The angle given in radians to rotate the bot by.
+        """
+
+        bot.rotate(Vector(400, 490), angle, False)
+
+    def draw(self, display_surface: Surface) -> None:
+        """Renders the bot at it's current angle and position on the given surface."""
 
         # bot radius
         BOT_RADIUS = 75
@@ -70,7 +118,6 @@ class Bot:
 
         # axle
         AXLE_WIDTH = BOT_RADIUS * 2
-        self.AXLE_WIDTH = AXLE_WIDTH
         AXLE_HEIGHT = 20
         AXLE_X = SURFACE_WIDTH // 2 - AXLE_WIDTH // 2
         AXLE_Y = SURFACE_HEIGHT // 2 - AXLE_HEIGHT // 2
@@ -112,7 +159,7 @@ if __name__ == "__main__":
         # fill in the background to hide past drawings
         display_surface.fill(WHITE)
 
-        bot.rotate(Vector(400, 310), angle, False)
+        bot.turn_on_left_wheel(angle)
         bot.update()
         bot.draw(display_surface)
 
