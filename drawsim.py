@@ -74,11 +74,9 @@ class Bot:
 
         vec_from_pos_to_center = self.pos.sub(pos)
         if is_clockwise:
-            rotated_vec = vec_from_pos_to_center.rotated(angle)
-            self.angle -= angle
-        else:
-            rotated_vec = vec_from_pos_to_center.rotated(-angle)
-            self.angle += angle
+            angle = -angle
+        rotated_vec = vec_from_pos_to_center.rotated(angle)
+        self.angle += angle
         self.pos = pos.add(rotated_vec)
 
     def turn_on_right_wheel(self, angle: float) -> None:
@@ -90,7 +88,7 @@ class Bot:
             The angle given in radians to rotate the bot by.
         """
 
-        bot.rotate(Vector(400, 310), angle, True)
+        bot.rotate(Vector(400, 490), angle, True)
 
     def turn_on_left_wheel(self, angle: float) -> None:
         """Rotates the bot counter-clockwise around the left wheel by the given angle.
@@ -101,7 +99,7 @@ class Bot:
             The angle given in radians to rotate the bot by.
         """
 
-        bot.rotate(Vector(400, 490), angle, False)
+        bot.rotate(Vector(400, 310), angle, False)
 
     def draw(self, display_surface: Surface) -> None:
         """Renders the bot at it's current angle and position on the given surface."""
@@ -119,13 +117,13 @@ class Bot:
         # axle
         AXLE_WIDTH = BOT_RADIUS * 2
         AXLE_HEIGHT = 20
-        AXLE_X = SURFACE_WIDTH // 2 - AXLE_WIDTH // 2
-        AXLE_Y = SURFACE_HEIGHT // 2 - AXLE_HEIGHT // 2
+        AXLE_X = SURFACE_WIDTH / 2 - AXLE_WIDTH / 2
+        AXLE_Y = SURFACE_HEIGHT / 2 - AXLE_HEIGHT / 2
         pygame.gfxdraw.box(bot_surface, Rect(AXLE_X , AXLE_Y, AXLE_WIDTH, AXLE_HEIGHT), LIGHT_PURPLE)
 
         # wheels
         WHEEL_WIDTH = 30
-        WHEEL_Y = AXLE_Y - (WHEEL_WIDTH - AXLE_HEIGHT) // 2
+        WHEEL_Y = AXLE_Y - (WHEEL_WIDTH - AXLE_HEIGHT) / 2
         # left wheel
         pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - WHEEL_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), RED)
         # right wheel
@@ -133,7 +131,10 @@ class Bot:
 
         bot_surface = pygame.transform.rotate(bot_surface, math.degrees(self.angle))
 
-        draw_pos = self.pos.sub(Vector(bot_surface.get_width() // 2, bot_surface.get_height() // 2))
+        # invert the y-axis
+        draw_pos = self.pos.sub(Vector(bot_surface.get_width() / 2, -bot_surface.get_height() / 2))
+
+        draw_pos = Vector(draw_pos.x, HEIGHT - draw_pos.y)
 
         display_surface.blit(bot_surface, draw_pos.coords())
 
@@ -142,12 +143,13 @@ clock = pygame.time.Clock()
 angle = math.radians(1)
 bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, 0))
 
-ticks = 0
+tick_rate = 60
+paused = False
 
 if __name__ == "__main__":
     # start the program
     while True:
-        clock.tick(60)
+        clock.tick(tick_rate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # deactivates the pygame library
@@ -155,13 +157,24 @@ if __name__ == "__main__":
 
                 # quit the program.
                 quit()
+            if event.type == pygame.KEYDOWN:
+                # pause the game
+                if event.key == pygame.K_p:
+                    paused = not paused
+                # speed up the simulation
+                elif event.key == pygame.K_EQUALS:
+                    tick_rate = min(tick_rate + 5, 60)
+                # slow down the simulation
+                elif event.key == pygame.K_MINUS:
+                    tick_rate = max(tick_rate - 5, 5)
 
-        # fill in the background to hide past drawings
-        display_surface.fill(WHITE)
+        if not paused:
+            # fill in the background to hide past drawings
+            display_surface.fill(WHITE)
 
-        bot.turn_on_left_wheel(angle)
-        bot.update()
-        bot.draw(display_surface)
+            bot.turn_on_left_wheel(angle)
+            bot.update()
+            bot.draw(display_surface)
 
-        # refreshes entire window and surface object
-        pygame.display.flip()
+            # refreshes entire window and surface object
+            pygame.display.flip()
