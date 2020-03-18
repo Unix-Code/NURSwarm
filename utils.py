@@ -1,4 +1,4 @@
-from math import cos, sin, sqrt, atan2, degrees
+from math import cos, sin, sqrt, atan2, degrees, radians
 from functools import reduce
 
 
@@ -17,7 +17,7 @@ class Vector:
         return self.from_polar(self.mag, self.heading() + angle)
 
     @staticmethod
-    def from_polar(r, theta):
+    def from_polar(r, theta, in_degrees=False):
         x = r * cos(theta)
         y = r * sin(theta)
         return Vector(x, y)

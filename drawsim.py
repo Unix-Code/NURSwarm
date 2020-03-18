@@ -47,13 +47,20 @@ class Bot:
     WHEEL_WIDTH: `int`
         The entire width of the bot's wheel (which is a rectangle)
     """
+    # bot radius
+    BOT_RADIUS = 75
+    SURFACE_WIDTH = SURFACE_HEIGHT = 200
+
+    AXLE_WIDTH = BOT_RADIUS * 2
+    AXLE_HEIGHT = 20
+    # wheels
+    WHEEL_WIDTH = 30
+    WHEEL_DISTANCE = WHEEL_WIDTH / 2 + BOT_RADIUS
 
     def __init__(self, pos: Vector, vel: Vector):
         self.angle: float = math.pi / 2
         self.pos: Vector = pos
         self.vel: Vector = vel
-        self.BOT_RADIUS: int = 75
-        self.WHEEL_WIDTH: int = 30
 
     def update(self):
         self.pos = self.pos.add(self.vel)
@@ -87,8 +94,9 @@ class Bot:
         angle: `float`
             The angle given in radians to rotate the bot by.
         """
-
-        bot.rotate(Vector(400, 490), angle, True)
+        right_wheel_heading = self.angle - math.pi / 2
+        right_wheel_pos: Vector = self.pos.add(Vector.from_polar(Bot.WHEEL_DISTANCE, right_wheel_heading))
+        bot.rotate(right_wheel_pos, angle, True)
 
     def turn_on_left_wheel(self, angle: float) -> None:
         """Rotates the bot counter-clockwise around the left wheel by the given angle.
@@ -98,38 +106,34 @@ class Bot:
         angle: `float`
             The angle given in radians to rotate the bot by.
         """
-
-        bot.rotate(Vector(400, 310), angle, False)
+        left_wheel_heading = self.angle + math.pi / 2
+        left_wheel_pos: Vector = self.pos.add(Vector.from_polar(Bot.WHEEL_DISTANCE, left_wheel_heading))
+        bot.rotate(left_wheel_pos, angle, False)
 
     def draw(self, display_surface: Surface) -> None:
         """Renders the bot at it's current angle and position on the given surface."""
 
         # bot radius
-        BOT_RADIUS = 75
-        SURFACE_WIDTH = SURFACE_HEIGHT = 200
 
-        bot_surface = Surface((SURFACE_WIDTH, SURFACE_HEIGHT), pygame.SRCALPHA)
+        bot_surface = Surface((Bot.SURFACE_WIDTH, Bot.SURFACE_HEIGHT), pygame.SRCALPHA)
 
         # body of bot
-        pygame.gfxdraw.aacircle(bot_surface, SURFACE_WIDTH // 2, SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
-        pygame.gfxdraw.filled_circle(bot_surface, SURFACE_WIDTH // 2 , SURFACE_HEIGHT // 2, BOT_RADIUS, GREEN)
+        pygame.gfxdraw.aacircle(bot_surface, Bot.SURFACE_WIDTH // 2, Bot.SURFACE_HEIGHT // 2, Bot.BOT_RADIUS, GREEN)
+        pygame.gfxdraw.filled_circle(bot_surface, Bot.SURFACE_WIDTH // 2 , Bot.SURFACE_HEIGHT // 2, Bot.BOT_RADIUS, GREEN)
 
         # axle
-        AXLE_WIDTH = BOT_RADIUS * 2
-        AXLE_HEIGHT = 20
-        AXLE_X = SURFACE_WIDTH / 2 - AXLE_WIDTH / 2
-        AXLE_Y = SURFACE_HEIGHT / 2 - AXLE_HEIGHT / 2
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X , AXLE_Y, AXLE_WIDTH, AXLE_HEIGHT), LIGHT_PURPLE)
+        AXLE_X = Bot.SURFACE_WIDTH / 2 - Bot.AXLE_WIDTH / 2
+        AXLE_Y = Bot.SURFACE_HEIGHT / 2 - Bot.AXLE_HEIGHT / 2
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X , AXLE_Y, Bot.AXLE_WIDTH, Bot.AXLE_HEIGHT), LIGHT_PURPLE)
 
         # wheels
-        WHEEL_WIDTH = 30
-        WHEEL_Y = AXLE_Y - (WHEEL_WIDTH - AXLE_HEIGHT) / 2
+        WHEEL_Y = AXLE_Y - (Bot.WHEEL_WIDTH - Bot.AXLE_HEIGHT) / 2
         # left wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - WHEEL_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), RED)
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - Bot.WHEEL_WIDTH, WHEEL_Y, Bot.WHEEL_WIDTH, Bot.WHEEL_WIDTH), RED)
         # right wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + AXLE_WIDTH, WHEEL_Y, WHEEL_WIDTH, WHEEL_WIDTH), BLUE)
+        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + Bot.AXLE_WIDTH, WHEEL_Y, Bot.WHEEL_WIDTH, Bot.WHEEL_WIDTH), BLUE)
 
-        bot_surface = pygame.transform.rotate(bot_surface, math.degrees(self.angle))
+        bot_surface = pygame.transform.rotate(bot_surface, math.degrees(self.angle - math.pi / 2))
 
         # invert the y-axis
         draw_pos = self.pos.sub(Vector(bot_surface.get_width() / 2, -bot_surface.get_height() / 2))
