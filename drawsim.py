@@ -40,7 +40,7 @@ class Bot:
         Angle in radians of the bot (using the unit-circle)
     pos : `Vector`
         The position of the bot's center as a Vector.
-    vel : `Vector`
+    vel : `float`
         The bot's current velocity.
     BOT_RADIUS: `int`
         The radius of the bot's body (which is a circle)
@@ -51,19 +51,20 @@ class Bot:
     BOT_RADIUS = 75
     SURFACE_WIDTH = SURFACE_HEIGHT = 200
 
+    # axle
     AXLE_WIDTH = BOT_RADIUS * 2
     AXLE_HEIGHT = 20
     # wheels
     WHEEL_WIDTH = 30
     WHEEL_DISTANCE = WHEEL_WIDTH / 2 + BOT_RADIUS
 
-    def __init__(self, pos: Vector, vel: Vector):
+    def __init__(self, pos: Vector, vel: float):
         self.angle: float = math.pi / 2
         self.pos: Vector = pos
-        self.vel: Vector = vel
+        self.vel: float = vel
 
     def update(self):
-        self.pos = self.pos.add(self.vel)
+        self.pos = self.pos.add(Vector.from_polar(self.vel, self.angle))
 
     def rotate(self, pos: Vector, angle: float, is_clockwise: bool = True) -> None:
         """Rotates the bot around the given position by the given angle
@@ -110,6 +111,10 @@ class Bot:
         left_wheel_pos: Vector = self.pos.add(Vector.from_polar(Bot.WHEEL_DISTANCE, left_wheel_heading))
         bot.rotate(left_wheel_pos, angle, False)
 
+    def get_steering_from_desired(self, desired: Vector) -> Vector:
+        return desired.sub(self.vel).set_mag(5)
+
+
     def draw(self, display_surface: Surface) -> None:
         """Renders the bot at it's current angle and position on the given surface."""
 
@@ -145,14 +150,16 @@ class Bot:
 
 clock = pygame.time.Clock()
 angle = math.radians(1)
-bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, 0))
+bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, 1))
 
 tick_rate = 60
 paused = False
+ticks = 0
 
 if __name__ == "__main__":
     # start the program
     while True:
+        ticks+=1
         clock.tick(tick_rate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -175,9 +182,10 @@ if __name__ == "__main__":
         if not paused:
             # fill in the background to hide past drawings
             display_surface.fill(WHITE)
-
-            bot.turn_on_left_wheel(angle)
-            bot.update()
+            if (ticks % 2 == 0 and ticks < 300):
+                bot.turn_on_right_wheel(angle)
+            else:
+                bot.update()
             bot.draw(display_surface)
 
             # refreshes entire window and surface object
