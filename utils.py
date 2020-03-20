@@ -1,4 +1,4 @@
-from math import cos, sin, sqrt, atan2, degrees, radians
+from math import cos, sin, sqrt, atan2, degrees, radians, isclose
 from functools import reduce
 
 
@@ -72,6 +72,9 @@ class Vector:
         :return: polar coordinates in format (r, theta)
         """
         return self.mag, self.heading()
+
+    def isclose(self, vector, *, abs_tol=0.05):
+        return isclose(vector.x, self.x, abs_tol=abs_tol) and isclose(vector.y, self.y, abs_tol=abs_tol)
 
     @classmethod
     def steer_force(cls, target, location, velocity, max_force, max_speed=MAX_SPEED):

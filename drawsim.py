@@ -58,15 +58,22 @@ class Bot:
     WHEEL_WIDTH = 30
     WHEEL_DISTANCE = WHEEL_WIDTH / 2 + BOT_RADIUS
 
-    def __init__(self, pos: Vector, vel: float):
-        self.angle: float = math.pi / 2
+    def __init__(self, pos: Vector, *, speed: float, angle: float = math.pi / 2):
+        self.angle: float = angle
         self.pos: Vector = pos
-        self.vel: float = vel
+        self.speed: float = speed
+        self.is_turning: bool = False
+
+    @property
+    def velocity(self) -> Vector:
+        """Gets the current velocity of the bot."""
+        return Vector.from_polar(self.speed, self.angle)
 
     def update(self):
-        self.pos = self.pos.add(Vector.from_polar(self.vel, self.angle))
+        desired_vector: Vector = Vector(-2, -3)
+        self.steer(desired_vector)
 
-    def rotate(self, pos: Vector, angle: float, is_clockwise: bool = True) -> None:
+    def rotate(self, pos: Vector, angle: float, *, clockwise: bool = True) -> None:
         """Rotates the bot around the given position by the given angle
         either clockwise or counter-clockwise.
 
@@ -76,7 +83,7 @@ class Bot:
             The position to rotate the bot around.
         angle: `float`
             The angle given in radians to rotate the bot by.
-        is_clockwise: `bool`
+        clockwise: `bool`
             Whether to rotate the bot clockwise or counter-clockwise.
         """
 
@@ -97,7 +104,7 @@ class Bot:
         """
         right_wheel_heading = self.angle - math.pi / 2
         right_wheel_pos: Vector = self.pos.add(Vector.from_polar(Bot.WHEEL_DISTANCE, right_wheel_heading))
-        bot.rotate(right_wheel_pos, angle, True)
+        bot.rotate(right_wheel_pos, angle, clockwise=True)
 
     def turn_on_left_wheel(self, angle: float) -> None:
         """Rotates the bot counter-clockwise around the left wheel by the given angle.
@@ -109,11 +116,44 @@ class Bot:
         """
         left_wheel_heading = self.angle + math.pi / 2
         left_wheel_pos: Vector = self.pos.add(Vector.from_polar(Bot.WHEEL_DISTANCE, left_wheel_heading))
-        bot.rotate(left_wheel_pos, angle, False)
+        bot.rotate(left_wheel_pos, angle, clockwise=False)
 
     def get_steering_from_desired(self, desired: Vector) -> Vector:
-        return desired.sub(self.vel).set_mag(5)
+        """Gets the new final vector after steering a certain amount.
 
+        Parameters
+        ------------
+        desired: `Vector`
+            The desired vector that the bot needs to steer towards.
+
+        Returns
+        ------------
+        A new vector resulting from applying a small steering vector.
+        """
+        steering_vector: Vector = desired.sub(self.velocity).set_mag(0.05)
+        new_current_vel: Vector = self.velocity.add(steering_vector)
+        return new_current_vel
+
+    def steer(self, desired: Vector) -> None:
+        """Responsible for steering the bot towards a desired vector.
+
+        Parameters
+        ------------
+        desired: `Vector`
+            The desired vector that the bot needs to steer towards.
+        """
+        self.is_turning = not self.is_turning
+
+        # if the desired vector has been reached
+        if desired.isclose(self.velocity):
+            self.is_turning = False
+
+        new_vector: Vector = self.get_steering_from_desired(desired)
+        if self.is_turning:
+            self.angle = new_vector.heading()
+        else:
+            self.speed = new_vector.mag
+            self.pos = self.pos.add(self.velocity)
 
     def draw(self, display_surface: Surface) -> None:
         """Renders the bot at it's current angle and position on the given surface."""
@@ -150,16 +190,14 @@ class Bot:
 
 clock = pygame.time.Clock()
 angle = math.radians(1)
-bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), Vector(0, 1))
+bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), speed=2, angle=math.pi / 2)
 
 tick_rate = 60
 paused = False
-ticks = 0
 
 if __name__ == "__main__":
     # start the program
     while True:
-        ticks+=1
         clock.tick(tick_rate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -182,11 +220,8 @@ if __name__ == "__main__":
         if not paused:
             # fill in the background to hide past drawings
             display_surface.fill(WHITE)
-            if (ticks % 2 == 0 and ticks < 300):
-                bot.turn_on_right_wheel(angle)
-            else:
-                bot.update()
             bot.draw(display_surface)
+            bot.update()
 
             # refreshes entire window and surface object
             pygame.display.flip()
