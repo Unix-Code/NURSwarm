@@ -70,7 +70,7 @@ class Bot:
         return Vector.from_polar(self.speed, self.angle)
 
     def update(self):
-        desired_vector: Vector = Vector(-2, -3)
+        desired_vector: Vector = Vector(-3, -5)
         self.steer(desired_vector)
 
     def rotate(self, pos: Vector, angle: float, *, clockwise: bool = True) -> None:
@@ -119,7 +119,7 @@ class Bot:
         bot.rotate(left_wheel_pos, angle, clockwise=False)
 
     def get_steering_from_desired(self, desired: Vector) -> Vector:
-        """Gets the new final vector after steering a certain amount.
+        """Gets the new velocity vector after steering a certain amount.
 
         Parameters
         ------------
@@ -143,13 +143,12 @@ class Bot:
             The desired vector that the bot needs to steer towards.
         """
         self.is_turning = not self.is_turning
-
+        new_vector: Vector = self.get_steering_from_desired(desired)
         # if the desired vector has been reached
         if desired.isclose(self.velocity):
             self.is_turning = False
-
-        new_vector: Vector = self.get_steering_from_desired(desired)
-        if self.is_turning:
+            self.pos = self.pos.add(self.velocity)
+        elif self.is_turning:
             self.angle = new_vector.heading()
         else:
             self.speed = new_vector.mag
@@ -169,28 +168,29 @@ class Bot:
         # axle
         AXLE_X = Bot.SURFACE_WIDTH / 2 - Bot.AXLE_WIDTH / 2
         AXLE_Y = Bot.SURFACE_HEIGHT / 2 - Bot.AXLE_HEIGHT / 2
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X , AXLE_Y, Bot.AXLE_WIDTH, Bot.AXLE_HEIGHT), LIGHT_PURPLE)
+        pygame.gfxdraw.box(bot_surface, Rect(int(AXLE_X) , int(AXLE_Y), Bot.AXLE_WIDTH, Bot.AXLE_HEIGHT), LIGHT_PURPLE)
 
         # wheels
-        WHEEL_Y = AXLE_Y - (Bot.WHEEL_WIDTH - Bot.AXLE_HEIGHT) / 2
+        WHEEL_Y = int(AXLE_Y - (Bot.WHEEL_WIDTH - Bot.AXLE_HEIGHT) / 2)
         # left wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X - Bot.WHEEL_WIDTH, WHEEL_Y, Bot.WHEEL_WIDTH, Bot.WHEEL_WIDTH), RED)
+        pygame.gfxdraw.box(bot_surface, Rect(int(AXLE_X - Bot.WHEEL_WIDTH), WHEEL_Y, Bot.WHEEL_WIDTH, Bot.WHEEL_WIDTH), RED)
         # right wheel
-        pygame.gfxdraw.box(bot_surface, Rect(AXLE_X + Bot.AXLE_WIDTH, WHEEL_Y, Bot.WHEEL_WIDTH, Bot.WHEEL_WIDTH), BLUE)
+        pygame.gfxdraw.box(bot_surface, Rect(int(AXLE_X + Bot.AXLE_WIDTH), WHEEL_Y, Bot.WHEEL_WIDTH, Bot.WHEEL_WIDTH), BLUE)
 
         bot_surface = pygame.transform.rotate(bot_surface, math.degrees(self.angle - math.pi / 2))
 
         # invert the y-axis
         draw_pos = self.pos.sub(Vector(bot_surface.get_width() / 2, -bot_surface.get_height() / 2))
 
-        draw_pos = Vector(draw_pos.x, HEIGHT - draw_pos.y)
+        draw_pos = Vector(int(draw_pos.x), int(HEIGHT - draw_pos.y))
 
         display_surface.blit(bot_surface, draw_pos.coords())
 
 
 clock = pygame.time.Clock()
-angle = math.radians(1)
-bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), speed=2, angle=math.pi / 2)
+speed = 5
+angle = math.pi / 2
+bot = Bot(Vector(WIDTH // 2, HEIGHT // 2), speed=speed, angle=angle)
 
 tick_rate = 60
 paused = False

@@ -73,7 +73,7 @@ class Vector:
         """
         return self.mag, self.heading()
 
-    def isclose(self, vector, *, abs_tol=0.05):
+    def isclose(self, vector, *, abs_tol=0.005):
         return isclose(vector.x, self.x, abs_tol=abs_tol) and isclose(vector.y, self.y, abs_tol=abs_tol)
 
     @classmethod
